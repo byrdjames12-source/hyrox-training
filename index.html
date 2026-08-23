@@ -954,28 +954,14 @@
        4. Paste your own values in place of the placeholders here
     */
     const firebaseConfig = {
-      // Import the functions you need from the SDKs you need
-      import { initializeApp } from "firebase/app";
-      import { getAnalytics } from "firebase/analytics";
-      // TODO: Add SDKs for Firebase products that you want to use
-      // https://firebase.google.com/docs/web/setup#available-libraries
-
-      // Your web app's Firebase configuration
-      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-      const firebaseConfig = {
-        apiKey: "AIzaSyD4DOLhVegudVGtJ0ni0r-_NNKqwP4ZiXc",
-        authDomain: "hyrox-trainer-74b8d.firebaseapp.com",
-        projectId: "hyrox-trainer-74b8d",
-        storageBucket: "hyrox-trainer-74b8d.firebasestorage.app",
-        messagingSenderId: "339428708372",
-        appId: "1:339428708372:web:74e636e89f9bcb7d0f1701",
-        measurementId: "G-QZVWNGP6JJ"
-      };
-
-      // Initialize Firebase
-      const app = initializeApp(firebaseConfig);
-      const analytics = getAnalytics(app);
-    };
+  apiKey: "AIzaSyD4DOLhVegudVGtJ0ni0r-_NNKqwP4ZiXc",
+  authDomain: "hyrox-trainer-74b8d.firebaseapp.com",
+  projectId: "hyrox-trainer-74b8d",
+  storageBucket: "hyrox-trainer-74b8d.firebasestorage.app",
+  messagingSenderId: "339428708372",
+  appId: "1:339428708372:web:74e636e89f9bcb7d0f1701",
+  measurementId: "G-QZVWNGP6JJ"
+};
 
     let db = null;
     let firebaseReady = false;
