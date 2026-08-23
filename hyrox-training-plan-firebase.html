@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hyrox Mixed Doubles — Training Plan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <style>
+    :root {
+      --bg: #e4e3dc;
+      --bg-card: #faf9f6;
+      --ink: #1b1e1f;
+      --ink-soft: #54585c;
+      --steel: #8b9095;
+      --line: #c9c8bf;
+      --asphalt: #1b1e1f;
+      --chalk: #f5f3ee;
+      --hazard: #ff4e1f;
+      --hazard-dark: #d43e14;
+      --roxred: #c81e3a;
+      --turf: #2f7a5b;
+      --turf-soft: #e3efe9;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: 60px;
+    }
+
+    .display {
+      font-family: 'Bebas Neue', sans-serif;
+      letter-spacing: 0.02em;
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ===== HERO ===== */
+    .hero {
+      background: var(--asphalt);
+      color: var(--chalk);
+      padding: 28px 20px 22px;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 4px solid var(--hazard);
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: -40px;
+      bottom: 0;
+      width: 220px;
+      background: repeating-linear-gradient(135deg, rgba(255, 78, 31, 0.10) 0 14px, transparent 14px 28px);
+      pointer-events: none;
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--hazard);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .hero-title {
+      font-size: 28px;
+      line-height: 1;
+      margin: 0;
+    }
+
+    .hero-names {
+      font-size: 13px;
+      color: #b7bcc0;
+      margin-top: 6px;
+    }
+
+    .hero-names button {
+      background: none;
+      border: none;
+      color: var(--hazard);
+      font-size: 11px;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 0;
+      margin-left: 6px;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .countdown-box {
+      text-align: right;
+    }
+
+    .countdown-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 56px;
+      line-height: 0.85;
+      color: var(--chalk);
+    }
+
+    .countdown-num span {
+      color: var(--hazard);
+    }
+
+    .countdown-label {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #9fa4a8;
+      margin-top: 2px;
+    }
+
+    .race-date {
+      font-size: 12px;
+      color: #9fa4a8;
+      margin-top: 2px;
+    }
+
+    .phase-track {
+      margin-top: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .phase-row {
+      display: flex;
+      gap: 3px;
+      margin-bottom: 6px;
+    }
+
+    .phase-seg {
+      flex: 1;
+      height: 6px;
+      border-radius: 2px;
+      background: #3a3d3e;
+    }
+
+    .phase-seg.done {
+      background: var(--turf);
+    }
+
+    .phase-seg.current {
+      background: var(--hazard);
+    }
+
+    .phase-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #b7bcc0;
+    }
+
+    .phase-meta b {
+      color: var(--chalk);
+      font-weight: 700;
+    }
+
+    /* ===== NAV ===== */
+    .tabbar {
+      display: flex;
+      gap: 0;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      overflow-x: auto;
+    }
+
+    .tabbtn {
+      flex: 1;
+      min-width: 120px;
+      padding: 14px 10px;
+      text-align: center;
+      background: none;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 12.5px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--steel);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+    }
+
+    .tabbtn.active {
+      color: var(--ink);
+      border-bottom-color: var(--hazard);
+    }
+
+    .wrap {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 20px 16px;
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+      animation: fade .25s ease;
+    }
+
+    @keyframes fade {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    /* ===== ROXZONE TRACK (signature element) ===== */
+    .roxtrack {
+      display: flex;
+      align-items: center;
+      overflow-x: auto;
+      padding: 10px 2px 18px;
+      gap: 0;
+    }
+
+    .roxtrack .plate {
+      flex: 0 0 auto;
+      width: 56px;
+      height: 56px;
+      border-radius: 6px;
+      background: var(--asphalt);
+      color: var(--chalk);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Bebas Neue', sans-serif;
+      cursor: pointer;
+      border: 2px solid var(--asphalt);
+    }
+
+    .roxtrack .plate .n {
+      font-size: 20px;
+      line-height: 1;
+      color: var(--hazard);
+    }
+
+    .roxtrack .plate .l {
+      font-size: 8px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-top: 1px;
+      text-align: center;
+      padding: 0 2px;
+    }
+
+    .roxtrack .plate.active {
+      background: var(--hazard);
+      border-color: var(--hazard);
+    }
+
+    .roxtrack .plate.active .n {
+      color: var(--asphalt);
+    }
+
+    .roxtrack .seg {
+      flex: 0 0 22px;
+      height: 2px;
+      background: var(--line);
+    }
+
+    /* ===== CARDS ===== */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+
+    .card h3 {
+      margin: 0 0 4px;
+      font-size: 15px;
+      letter-spacing: 0.01em;
+    }
+
+    .section-label {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--hazard);
+      font-weight: 700;
+      margin: 0 0 8px;
+    }
+
+    .week-note {
+      font-size: 13px;
+      color: var(--ink-soft);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .athlete-col-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin: 18px 0 8px;
+    }
+
+    .athlete-col-title .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+    }
+
+    .dot.you {
+      background: var(--hazard);
+    }
+
+    .dot.partner {
+      background: var(--turf);
+    }
+
+    .day-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .day-row:first-of-type {
+      border-top: none;
+    }
+
+    .day-check {
+      flex: 0 0 auto;
+      width: 22px;
+      height: 22px;
+      border-radius: 5px;
+      border: 2px solid var(--line);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+      background: #fff;
+    }
+
+    .day-check.checked {
+      background: var(--turf);
+      border-color: var(--turf);
+      color: #fff;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .day-body {
+      flex: 1;
+    }
+
+    .day-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--steel);
+      font-weight: 700;
+    }
+
+    .day-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .day-title.rest {
+      color: var(--steel);
+      font-weight: 600;
+    }
+
+    .day-detail {
+      font-size: 12.5px;
+      color: var(--ink-soft);
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+
+    /* ===== FULL PROGRAM accordion ===== */
+    .week-item {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .week-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      cursor: pointer;
+      gap: 10px;
+    }
+
+    .week-head-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .week-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 26px;
+      color: var(--hazard);
+      width: 38px;
+      text-align: center;
+    }
+
+    .week-titles {}
+
+    .week-titles .wt {
+      font-weight: 800;
+      font-size: 13.5px;
+    }
+
+    .week-titles .wr {
+      font-size: 11.5px;
+      color: var(--steel);
+    }
+
+    .week-phase-chip {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: var(--turf-soft);
+      color: var(--turf);
+      flex: 0 0 auto;
+    }
+
+    .chev {
+      font-size: 14px;
+      color: var(--steel);
+      transition: transform .2s;
+    }
+
+    .week-item.open .chev {
+      transform: rotate(180deg);
+    }
+
+    .week-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .25s ease;
+    }
+
+    .week-item.open .week-body {
+      max-height: 900px;
+    }
+
+    .week-body-inner {
+      padding: 0 16px 16px;
+    }
+
+    /* ===== STATIONS ===== */
+    .station-card {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      gap: 14px;
+    }
+
+    .station-badge {
+      flex: 0 0 auto;
+      width: 46px;
+      height: 46px;
+      border-radius: 6px;
+      background: var(--asphalt);
+      color: var(--hazard);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+    }
+
+    .station-name {
+      font-weight: 800;
+      font-size: 14.5px;
+    }
+
+    .station-dist {
+      font-size: 11.5px;
+      color: var(--hazard);
+      font-weight: 700;
+      margin-top: 1px;
+    }
+
+    .station-cue,
+    .station-split {
+      font-size: 12.5px;
+      color: var(--ink-soft);
+      margin-top: 6px;
+      line-height: 1.45;
+    }
+
+    .station-split b {
+      color: var(--ink);
+    }
+
+    /* ===== GOALS ===== */
+    .goal-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .goal-row:first-child {
+      border-top: none;
+    }
+
+    .goal-name {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .goal-input {
+      width: 120px;
+      padding: 7px 9px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      text-align: right;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .goal-input:focus {
+      outline: 2px solid var(--hazard);
+      outline-offset: 1px;
+    }
+
+    .stat-strip {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .stat-box {
+      flex: 1;
+      min-width: 110px;
+      background: var(--asphalt);
+      color: var(--chalk);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .stat-box .v {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 30px;
+      color: var(--hazard);
+      line-height: 1;
+    }
+
+    .stat-box .l {
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #b7bcc0;
+      margin-top: 3px;
+    }
+
+    .name-edit-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .name-edit-row input {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .name-edit-row button {
+      background: var(--hazard);
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 12.5px;
+      cursor: pointer;
+    }
+
+    .disclaimer {
+      font-size: 11.5px;
+      color: var(--steel);
+      line-height: 1.5;
+      margin-top: 6px;
+    }
+
+    .empty-note {
+      font-size: 12.5px;
+      color: var(--steel);
+      padding: 6px 0;
+    }
+
+    a {
+      color: var(--hazard);
+    }
+
+    @media (max-width:480px) {
+      .countdown-num {
+        font-size: 44px;
+      }
+
+      .hero-title {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="hero">
+    <div class="hero-top">
+      <div>
+        <div class="hero-eyebrow">Mixed Doubles · Race Day Countdown</div>
+        <h1 class="hero-title">HYROX TRAINING BOARD</h1>
+        <div class="hero-names" id="namesLine">Loading team…
+          <button id="editNamesBtn">edit names</button>
+        </div>
+        <div class="name-edit-row" id="nameEditRow" style="display:none;">
+          <input id="youNameInput" placeholder="Your name" maxlength="20">
+          <input id="partnerNameInput" placeholder="Partner's name" maxlength="20">
+          <button id="saveNamesBtn">Save</button>
+        </div>
+      </div>
+      <div class="countdown-box">
+        <div class="countdown-num" id="countdownNum">–</div>
+        <div class="countdown-label">days to race</div>
+        <div class="race-date">Thu, Dec 3, 2026</div>
+      </div>
+    </div>
+
+    <div class="phase-track">
+      <div class="phase-row" id="phaseRow"></div>
+      <div class="phase-meta">
+        <span>Week <b id="curWeekNum">–</b> of 15</span>
+        <b id="curPhaseName">–</b>
+      </div>
+    </div>
+    <div style="font-size:11px; color:#8a8f92; margin-top:10px;" id="syncStatus">Connecting…</div>
+  </div>
+
+  <div class="tabbar">
+    <button class="tabbtn active" data-tab="dashboard">This Week</button>
+    <button class="tabbtn" data-tab="program">Full Program</button>
+    <button class="tabbtn" data-tab="stations">Stations</button>
+    <button class="tabbtn" data-tab="goals">Goals &amp; Progress</button>
+  </div>
+
+  <div class="wrap">
+
+    <!-- DASHBOARD -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="card">
+        <p class="section-label" id="dashPhaseLabel">Phase</p>
+        <h3 id="dashWeekTitle">This Week</h3>
+        <p class="week-note" id="dashWeekNote"></p>
+        <p class="week-note" style="margin-top:-10px;"><b>Station of the week:</b> <span id="dashStationFocus"></span> —
+          see the Stations tab for cues.</p>
+
+        <div class="athlete-col-title"><span class="dot you"></span><span id="youLabelDash">You</span></div>
+        <div id="youDays"></div>
+
+        <div class="athlete-col-title"><span class="dot partner"></span><span id="partnerLabelDash">Partner</span></div>
+        <div id="partnerDays"></div>
+      </div>
+    </div>
+
+    <!-- FULL PROGRAM -->
+    <div class="panel" id="panel-program">
+      <p class="week-note">Tap a week to expand the full day-by-day plan for both of you. Progress bar at the top tracks
+        where you are right now.</p>
+      <div id="programList"></div>
+    </div>
+
+    <!-- STATIONS -->
+    <div class="panel" id="panel-stations">
+      <p class="week-note">The 8 Hyrox stations, in race order, each separated by a 1km run. In doubles you split the
+        reps/distance however works for your team — confirm exact doubles rep counts against the current official
+        rulebook closer to race day.</p>
+      <div class="roxtrack" id="stationTrack"></div>
+      <div id="stationCards"></div>
+    </div>
+
+    <!-- GOALS -->
+    <div class="panel" id="panel-goals">
+      <div class="stat-strip">
+        <div class="stat-box">
+          <div class="v" id="statCompletion">–</div>
+          <div class="l">Sessions logged</div>
+        </div>
+        <div class="stat-box">
+          <div class="v" id="statStreak">–</div>
+          <div class="l">Weeks on track</div>
+        </div>
+        <div class="stat-box">
+          <div class="v" id="statWeeksLeft">–</div>
+          <div class="l">Weeks to go</div>
+        </div>
+      </div>
+      <div class="card">
+        <p class="section-label">Benchmark Targets</p>
+        <h3>Race Day Goals</h3>
+        <p class="week-note">Set target splits together — edit anytime, saved automatically and shared between you both.
+        </p>
+        <div id="goalsList"></div>
+      </div>
+      <div class="card">
+        <p class="section-label">Weekly Log</p>
+        <h3>Completion by Week</h3>
+        <div id="weekLogSummary"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /* ============ DATA ============ */
+    const BASE_MONDAY = new Date(2026, 7, 24); // Mon Aug 24 2026 = start of Week 1
+    const RACE_DATE = new Date(2026, 11, 3);   // Thu Dec 3 2026
+    const TOTAL_WEEKS = 15;
+
+    const STATIONS = [
+      { n: "01", name: "SkiErg", dist: "1000m", cue: "Drive with the legs first, controlled pull, keep cadence steady rather than sprinting early.", split: "Split evenly (500/500) or alternate in short 100–200m bursts to keep both of you fresh." },
+      { n: "02", name: "Sled Push", dist: "50m", cue: "Low shin angle, short powerful steps, drive through the mid-foot — don't stand up early.", split: "Break into two 25m efforts, or alternate pushes if your team prefers shorter, harder pushes." },
+      { n: "03", name: "Sled Pull", dist: "50m", cue: "Hand-over-hand, hinge at the hips, brace your core on every pull rather than yanking with the arms.", split: "Same as sled push — split distance evenly or alternate pulls." },
+      { n: "04", name: "Burpee Broad Jumps", dist: "80m", cue: "Chest to floor, jump forward not up, find a rhythm you can hold rather than sprinting the first 20m.", split: "Alternate reps, or split the distance in half so one of you isn't gassed for the run after." },
+      { n: "05", name: "Row", dist: "1000m", cue: "Legs–body–arms on the drive, quick hands away, hold a consistent split instead of going out too hot.", split: "Split 500/500, or trade off every 250m if your team handles transitions well." },
+      { n: "06", name: "Farmers Carry", dist: "200m", cue: "Tall posture, braced core, quick controlled steps — grip endurance matters more than speed here.", split: "Alternate in 50m blocks so grip doesn't fully blow up before the run." },
+      { n: "07", name: "Sandbag Lunges", dist: "100m", cue: "Upright torso, knee to the ground, drive through the front heel on the way up.", split: "Split the distance evenly, or let the stronger squatter take a bit more." },
+      { n: "08", name: "Wall Balls", dist: "75–100 reps", cue: "Full squat depth every rep, let the hips drive the throw, and protect a target you can hit on repeat.", split: "Alternate in sets of 8–10 so neither of you redlines before the last one." }
+    ];
+
+    // Day templates. dayIndex 0=Mon ... 6=Sun
+    function tmpl(list) { return list; }
+
+    const PHASE1_YOU = tmpl([
+      { t: "Strength — Lower", d: "Squat/deadlift focus, moderate load + Sled Push technique work, light loads." },
+      { t: "Engine", d: "Zone 2 run 30 min + SkiErg 4×500m technique intervals, easy effort." },
+      { t: "Strength — Upper Pull", d: "Rows, pull-ups + Farmers Carry technique, moderate weight, focus on posture." },
+      { t: "Compromised Run", d: "6×400m run / 90s rest + Burpee Broad Jump drills, build rhythm." },
+      { t: "Strength — Full Body", d: "Full body lifts + Wall Ball technique, form over reps." },
+      { t: "Long Aerobic", d: "60 min easy row/bike/run + core finisher." },
+      { t: "Rest", d: "Mobility, foam roll, easy walk.", rest: true }
+    ]);
+    const PHASE1_PARTNER = tmpl([
+      { t: "Full-Body Strength", d: "Strength circuit + technique pass on all 8 stations, light loads." },
+      { t: "Rest", d: "Easy walk or gentle stretch.", rest: true },
+      { t: "Compromised Run", d: "4×500m run + Sled Pull & Sandbag Lunge technique." },
+      { t: "Rest", d: "Recovery day — mobility if you have time.", rest: true },
+      { t: "Engine", d: "SkiErg/Row/Bike steady 30 min + core." },
+      { t: "Long Session", d: "45 min easy aerobic + full technique run-through, all 8 stations." },
+      { t: "Rest", d: "Full rest.", rest: true }
+    ]);
+
+    const PHASE2_YOU = tmpl([
+      { t: "Strength — Lower Heavy", d: "5×5 squat/deadlift + Sled Push/Pull ladder, add load vs last week." },
+      { t: "Compromised Run", d: "8×400m near race pace + SkiErg 500m between reps." },
+      { t: "Strength — Upper", d: "Push/pull + Farmers Carry, heavier load, longer distance." },
+      { t: "Doubles Simulation", d: "Alternate 400m run / station block with your partner (or solo, timed)." },
+      { t: "Strength — Power", d: "Full body power work + Wall Balls + Burpee Broad Jumps, higher volume." },
+      { t: "Long Aerobic", d: "75 min row/bike/run steady + station finisher." },
+      { t: "Rest", d: "Mobility + recovery.", rest: true }
+    ]);
+    const PHASE2_PARTNER = tmpl([
+      { t: "Full-Body Strength", d: "Heavier station work — sled loads and carry distance both up." },
+      { t: "Rest", d: "Easy walk or stretch.", rest: true },
+      { t: "Compromised Run", d: "6×500m near race pace + Wall Ball/Burpee intervals." },
+      { t: "Rest", d: "Recovery day.", rest: true },
+      { t: "Engine + Grip", d: "40 min steady state + core + grip work via carries." },
+      { t: "Long Session", d: "50–60 min aerobic + mini simulation (4 stations)." },
+      { t: "Rest", d: "Full rest.", rest: true }
+    ]);
+
+    const PHASE3_YOU = tmpl([
+      { t: "Strength — Maintain", d: "Heavy lower, lower volume — sled work at race weight." },
+      { t: "Race Simulation", d: "Half Hyrox (4 stations + runs) at target pace." },
+      { t: "Strength — Upper + Carries", d: "Carries at race distance/weight, practice roxzone transitions." },
+      { t: "Compromised Run", d: "Race-pace intervals + one station under fatigue." },
+      { t: "Strength — Light/Technique", d: "Light full body, refine technique, doubles handoffs." },
+      { t: "Full Simulation", d: "Full or 3/4 Hyrox run-through with your partner (every 2–3 weeks)." },
+      { t: "Rest", d: "Mobility + recovery.", rest: true }
+    ]);
+    const PHASE3_PARTNER = tmpl([
+      { t: "Strength — Race Weight", d: "Sled/carries at race weight, moderate volume." },
+      { t: "Rest", d: "Easy walk or stretch.", rest: true },
+      { t: "Race Simulation", d: "Half Hyrox pacing effort." },
+      { t: "Rest", d: "Recovery day.", rest: true },
+      { t: "Engine + Transitions", d: "Tempo intervals + core + roxzone transition drills." },
+      { t: "Long Session", d: "Full or partial simulation with partner when together." },
+      { t: "Rest", d: "Full rest.", rest: true }
+    ]);
+
+    const WEEK14_YOU = tmpl([
+      { t: "Strength — Light", d: "Light full body, keep it crisp, nothing to failure." },
+      { t: "Short Race-Pace", d: "Short intervals at race pace — quality over quantity." },
+      { t: "Easy Strength + Mobility", d: "Light movement, mobility focus." },
+      { t: "Short Simulation", d: "2–3 stations + short runs, stay sharp." },
+      { t: "Easy Movement", d: "Light aerobic, shake the legs out." },
+      { t: "Shakeout", d: "Short shakeout session + review race day strategy together." },
+      { t: "Rest", d: "Full rest.", rest: true }
+    ]);
+    const WEEK14_PARTNER = tmpl([
+      { t: "Light Strength", d: "Light full body, keep it crisp." },
+      { t: "Rest", d: "Easy walk.", rest: true },
+      { t: "Short Race-Pace", d: "Short efforts at race pace." },
+      { t: "Rest", d: "Recovery day.", rest: true },
+      { t: "Easy Aerobic + Mobility", d: "Light movement, mobility focus." },
+      { t: "Shakeout", d: "Short shakeout together if possible + review strategy." },
+      { t: "Rest", d: "Full rest.", rest: true }
+    ]);
+
+    const WEEK15_YOU = tmpl([
+      { t: "Easy Movement", d: "Light mobility, easy walk — nothing taxing." },
+      { t: "Short Activation", d: "Short, light activation + review roxzone plan and doubles splits." },
+      { t: "Rest + Logistics", d: "Full rest. Travel, gear check, race-day nutrition plan." },
+      { t: "RACE DAY", d: "Mixed doubles Hyrox — go get it.", race: true },
+      { t: "Recovery", d: "Easy walk, hydrate, celebrate." },
+      { t: "Recovery", d: "Light mobility, reflect on the race." },
+      { t: "Recovery", d: "Full rest.", rest: true }
+    ]);
+    const WEEK15_PARTNER = tmpl([
+      { t: "Easy Movement", d: "Light mobility, easy walk." },
+      { t: "Short Activation", d: "Short, light activation + review roxzone plan." },
+      { t: "Rest + Logistics", d: "Full rest. Travel, gear check, nutrition plan.", },
+      { t: "RACE DAY", d: "Mixed doubles Hyrox — go get it.", race: true },
+      { t: "Recovery", d: "Easy walk, hydrate, celebrate." },
+      { t: "Recovery", d: "Light mobility, reflect on the race." },
+      { t: "Recovery", d: "Full rest.", rest: true }
+    ]);
+
+    const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+    const PHASES = [
+      { id: 1, name: "Foundation", from: 1, to: 4, goal: "Build your aerobic base, dial in technique on all 8 stations, and establish a strength baseline before loads climb." },
+      { id: 2, name: "Build", from: 5, to: 9, goal: "Increase station loads and compromised-running volume. Start practicing doubles transitions together." },
+      { id: 3, name: "Peak", from: 10, to: 13, goal: "Race-pace simulations, roxzone transitions, full and half Hyrox run-throughs." },
+      { id: 4, name: "Taper & Race", from: 14, to: 15, goal: "Cut volume, stay sharp, arrive fresh. Race day is Thursday, December 3." }
+    ];
+
+    function getWeekTemplates(weekNum) {
+      if (weekNum <= 4) return { you: PHASE1_YOU, partner: PHASE1_PARTNER, phaseId: 1, weekInPhase: weekNum, phaseLen: 4 };
+      if (weekNum <= 9) return { you: PHASE2_YOU, partner: PHASE2_PARTNER, phaseId: 2, weekInPhase: weekNum - 4, phaseLen: 5 };
+      if (weekNum <= 13) return { you: PHASE3_YOU, partner: PHASE3_PARTNER, phaseId: 3, weekInPhase: weekNum - 9, phaseLen: 4 };
+      if (weekNum === 14) return { you: WEEK14_YOU, partner: WEEK14_PARTNER, phaseId: 4, weekInPhase: 1, phaseLen: 2 };
+      return { you: WEEK15_YOU, partner: WEEK15_PARTNER, phaseId: 4, weekInPhase: 2, phaseLen: 2 };
+    }
+
+    function getWeekNote(weekNum) {
+      const wt = getWeekTemplates(weekNum);
+      if (weekNum === 15) return "Race week. Taper Monday–Wednesday, then race day Thursday, December 3. Trust the work — nothing new this week.";
+      if (weekNum === 14) return "Sharpen week. Cut volume roughly 30%, keep intensity crisp, one short simulation early in the week.";
+      const phase = PHASES.find(p => p.id === wt.phaseId);
+      return `Week ${wt.weekInPhase} of ${wt.phaseLen} in ${phase.name}. ${phase.goal}`;
+    }
+
+    function getWeekRange(weekNum) {
+      const start = new Date(BASE_MONDAY);
+      start.setDate(start.getDate() + (weekNum - 1) * 7);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 6);
+      const opts = { month: "short", day: "numeric" };
+      return `${start.toLocaleDateString('en-US', opts)} – ${end.toLocaleDateString('en-US', opts)}`;
+    }
+
+    /* ============ STATE / STORAGE ============ */
+    let PROFILE = { you: "You", partner: "Partner" };
+    let LOG = {}; // { weekNum: { you:[bool x7], partner:[bool x7] } }
+    let GOALS = [
+      { id: "g1", name: "8× 1km run splits", target: "" },
+      { id: "g2", name: "SkiErg 1000m", target: "" },
+      { id: "g3", name: "Sled Push 50m (race weight)", target: "" },
+      { id: "g4", name: "Sled Pull 50m", target: "" },
+      { id: "g5", name: "Burpee Broad Jumps 80m", target: "" },
+      { id: "g6", name: "Row 1000m", target: "" },
+      { id: "g7", name: "Farmers Carry 200m", target: "" },
+      { id: "g8", name: "Sandbag Lunges 100m", target: "" },
+      { id: "g9", name: "Wall Balls (per person)", target: "" },
+      { id: "g10", name: "Overall finish time goal", target: "" }
+    ];
+
+    /* ============ FIREBASE SYNC ============
+       1. Create a free Firebase project at console.firebase.google.com
+       2. Enable Firestore Database
+       3. Project settings > General > Your apps > Web app — copy the config below
+       4. Paste your own values in place of the placeholders here
+    */
+    const firebaseConfig = {
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "firebase/app";
+      import { getAnalytics } from "firebase/analytics";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
+
+      // Your web app's Firebase configuration
+      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+      const firebaseConfig = {
+        apiKey: "AIzaSyD4DOLhVegudVGtJ0ni0r-_NNKqwP4ZiXc",
+        authDomain: "hyrox-trainer-74b8d.firebaseapp.com",
+        projectId: "hyrox-trainer-74b8d",
+        storageBucket: "hyrox-trainer-74b8d.firebasestorage.app",
+        messagingSenderId: "339428708372",
+        appId: "1:339428708372:web:74e636e89f9bcb7d0f1701",
+        measurementId: "G-QZVWNGP6JJ"
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+    };
+
+    let db = null;
+    let firebaseReady = false;
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+      firebaseReady = true;
+    } catch (e) { console.error('Firebase init failed', e); }
+
+    const DOC_REF = () => db.collection('hyrox-training').doc('shared-data');
+
+    async function loadAll() {
+      const statusEl = document.getElementById('syncStatus');
+      if (!firebaseReady || firebaseConfig.apiKey === "PASTE_YOUR_API_KEY") {
+        if (statusEl) statusEl.textContent = "Sync not configured yet — add your Firebase config in the code.";
+        return;
+      }
+      try {
+        const snap = await DOC_REF().get();
+        if (snap.exists) {
+          const data = snap.data();
+          if (data.profile) PROFILE = data.profile;
+          if (data.log) LOG = data.log;
+          if (data.goals) GOALS = data.goals;
+        }
+        if (statusEl) statusEl.textContent = "Synced — changes save for both of you automatically.";
+      } catch (e) {
+        console.error(e);
+        if (statusEl) statusEl.textContent = "Couldn't reach sync — check your connection and Firestore rules.";
+      }
+    }
+
+    async function saveProfile() {
+      try { await DOC_REF().set({ profile: PROFILE }, { merge: true }); } catch (e) { console.error(e); }
+    }
+    async function saveLog() {
+      try { await DOC_REF().set({ log: LOG }, { merge: true }); } catch (e) { console.error(e); }
+    }
+    async function saveGoals() {
+      try { await DOC_REF().set({ goals: GOALS }, { merge: true }); } catch (e) { console.error(e); }
+    }
+
+    function ensureWeekLog(weekNum) {
+      if (!LOG[weekNum]) LOG[weekNum] = { you: [false, false, false, false, false, false, false], partner: [false, false, false, false, false, false, false] };
+      return LOG[weekNum];
+    }
+
+    /* ============ DATE HELPERS ============ */
+    function today() { return new Date(); }
+    function daysUntilRace() {
+      const t = new Date(); t.setHours(0, 0, 0, 0);
+      const r = new Date(RACE_DATE); r.setHours(0, 0, 0, 0);
+      return Math.ceil((r - t) / 86400000);
+    }
+    function currentWeekNum() {
+      const t = new Date(); t.setHours(0, 0, 0, 0);
+      const b = new Date(BASE_MONDAY); b.setHours(0, 0, 0, 0);
+      let wk = Math.floor((t - b) / (7 * 86400000)) + 1;
+      if (wk < 1) wk = 1;
+      if (wk > TOTAL_WEEKS) wk = TOTAL_WEEKS;
+      return wk;
+    }
+
+    /* ============ RENDER ============ */
+    function renderHero() {
+      const dLeft = daysUntilRace();
+      document.getElementById('countdownNum').innerHTML = dLeft >= 0 ? `<span>${dLeft}</span>` : `<span>0</span>`;
+      const wk = currentWeekNum();
+      document.getElementById('curWeekNum').textContent = wk;
+      const wt = getWeekTemplates(wk);
+      const phase = PHASES.find(p => p.id === wt.phaseId);
+      document.getElementById('curPhaseName').textContent = phase.name;
+
+      const row = document.getElementById('phaseRow');
+      row.innerHTML = '';
+      for (let i = 1; i <= TOTAL_WEEKS; i++) {
+        const seg = document.createElement('div');
+        seg.className = 'phase-seg' + (i < wk ? ' done' : '') + (i === wk ? ' current' : '');
+        row.appendChild(seg);
+      }
+
+      document.getElementById('namesLine').innerHTML =
+        `${PROFILE.you} <span class="dot you" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff4e1f;margin:0 4px;"></span> &amp; ${PROFILE.partner} <span class="dot partner" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#2f7a5b;margin:0 4px;"></span>`
+        + ` <button id="editNamesBtn2" style="background:none;border:none;color:#ff4e1f;font-size:11px;cursor:pointer;text-decoration:underline;padding:0;margin-left:6px;">edit names</button>`;
+      document.getElementById('editNamesBtn2').addEventListener('click', toggleNameEdit);
+    }
+
+    function toggleNameEdit() {
+      const row = document.getElementById('nameEditRow');
+      row.style.display = row.style.display === 'none' ? 'flex' : 'none';
+      document.getElementById('youNameInput').value = PROFILE.you;
+      document.getElementById('partnerNameInput').value = PROFILE.partner;
+    }
+
+    function dayRowHTML(weekNum, athleteKey, dayIdx, item) {
+      const wl = ensureWeekLog(weekNum);
+      const checked = wl[athleteKey][dayIdx];
+      const isRace = item.race;
+      return `
+    <div class="day-row">
+      <div class="day-check ${checked ? 'checked' : ''}" data-week="${weekNum}" data-athlete="${athleteKey}" data-day="${dayIdx}">${checked ? '✓' : ''}</div>
+      <div class="day-body">
+        <div class="day-label">${DAY_LABELS[dayIdx]}</div>
+        <div class="day-title ${item.rest ? 'rest' : ''}" style="${isRace ? 'color:#c81e3a;' : ''}">${item.t}</div>
+        <div class="day-detail">${item.d}</div>
+      </div>
+    </div>`;
+    }
+
+    function renderDashboard() {
+      const wk = currentWeekNum();
+      const wt = getWeekTemplates(wk);
+      const phase = PHASES.find(p => p.id === wt.phaseId);
+      document.getElementById('dashPhaseLabel').textContent = `${phase.name} · ${getWeekRange(wk)}`;
+      document.getElementById('dashWeekTitle').textContent = `Week ${wk} of 15`;
+      document.getElementById('dashWeekNote').textContent = getWeekNote(wk);
+      document.getElementById('dashStationFocus').textContent = STATIONS[(wk - 1) % 8].name;
+      document.getElementById('youLabelDash').textContent = PROFILE.you;
+      document.getElementById('partnerLabelDash').textContent = PROFILE.partner;
+
+      const youWrap = document.getElementById('youDays');
+      const partnerWrap = document.getElementById('partnerDays');
+      youWrap.innerHTML = wt.you.map((it, i) => dayRowHTML(wk, 'you', i, it)).join('');
+      partnerWrap.innerHTML = wt.partner.map((it, i) => dayRowHTML(wk, 'partner', i, it)).join('');
+
+      document.querySelectorAll('.day-check').forEach(el => {
+        el.addEventListener('click', onDayCheckClick);
+      });
+    }
+
+    async function onDayCheckClick(e) {
+      const el = e.currentTarget;
+      const weekNum = el.dataset.week;
+      const athlete = el.dataset.athlete;
+      const day = parseInt(el.dataset.day, 10);
+      const wl = ensureWeekLog(weekNum);
+      wl[athlete][day] = !wl[athlete][day];
+      el.classList.toggle('checked');
+      el.textContent = wl[athlete][day] ? '✓' : '';
+      await saveLog();
+      renderGoalsPanel(); // keep stats in sync if that panel is visited later
+    }
+
+    function renderProgram() {
+      const list = document.getElementById('programList');
+      list.innerHTML = '';
+      for (let wk = 1; wk <= TOTAL_WEEKS; wk++) {
+        const wt = getWeekTemplates(wk);
+        const phase = PHASES.find(p => p.id === wt.phaseId);
+        const item = document.createElement('div');
+        item.className = 'week-item';
+        item.innerHTML = `
+      <div class="week-head" data-wk="${wk}">
+        <div class="week-head-left">
+          <div class="week-num">${String(wk).padStart(2, '0')}</div>
+          <div class="week-titles">
+            <div class="wt">${getWeekRange(wk)}</div>
+            <div class="wr">Station focus: ${STATIONS[(wk - 1) % 8].name}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="week-phase-chip">${phase.name}</div>
+          <div class="chev">▾</div>
+        </div>
+      </div>
+      <div class="week-body">
+        <div class="week-body-inner">
+          <p class="week-note">${getWeekNote(wk)}</p>
+          <div class="athlete-col-title"><span class="dot you"></span>${PROFILE.you}</div>
+          <div>${wt.you.map((it, i) => dayRowHTML(wk, 'you', i, it)).join('')}</div>
+          <div class="athlete-col-title"><span class="dot partner"></span>${PROFILE.partner}</div>
+          <div>${wt.partner.map((it, i) => dayRowHTML(wk, 'partner', i, it)).join('')}</div>
+        </div>
+      </div>`;
+        list.appendChild(item);
+      }
+      list.querySelectorAll('.week-head').forEach(h => {
+        h.addEventListener('click', () => {
+          h.parentElement.classList.toggle('open');
+        });
+      });
+      list.querySelectorAll('.day-check').forEach(el => {
+        el.addEventListener('click', onDayCheckClick);
+      });
+      // open current week by default
+      const cur = currentWeekNum();
+      const curItem = list.children[cur - 1];
+      if (curItem) curItem.classList.add('open');
+    }
+
+    function renderStations() {
+      const track = document.getElementById('stationTrack');
+      track.innerHTML = STATIONS.map((s, i) => {
+        const plate = `<div class="plate" data-idx="${i}"><div class="n">${s.n}</div><div class="l">${s.name}</div></div>`;
+        return i < STATIONS.length - 1 ? plate + '<div class="seg"></div>' : plate;
+      }).join('');
+
+      const cards = document.getElementById('stationCards');
+      cards.innerHTML = STATIONS.map(s => `
+    <div class="station-card" id="station-${s.n}">
+      <div class="station-badge">${s.n}</div>
+      <div>
+        <div class="station-name">${s.name}</div>
+        <div class="station-dist">${s.dist}</div>
+        <div class="station-cue"><b>Cue:</b> ${s.cue}</div>
+        <div class="station-split"><b>Doubles split:</b> ${s.split}</div>
+      </div>
+    </div>`).join('');
+
+      track.querySelectorAll('.plate').forEach(p => {
+        p.addEventListener('click', () => {
+          const idx = p.dataset.idx;
+          const target = document.getElementById(`station-${STATIONS[idx].n}`);
+          if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+      });
+    }
+
+    function renderGoalsPanel() {
+      // stats
+      let totalChecked = 0;
+      let weeksOnTrack = 0;
+      const wk = currentWeekNum();
+      for (let w = 1; w <= wk; w++) {
+        const wl = LOG[w];
+        if (!wl) continue;
+        const youDone = wl.you.filter(Boolean).length;
+        const partnerDone = wl.partner.filter(Boolean).length;
+        totalChecked += youDone + partnerDone;
+        if (youDone >= 4 || partnerDone >= 3) weeksOnTrack++;
+      }
+      document.getElementById('statCompletion').textContent = totalChecked;
+      document.getElementById('statStreak').textContent = weeksOnTrack;
+      document.getElementById('statWeeksLeft').textContent = Math.max(TOTAL_WEEKS - wk, 0);
+
+      const goalsList = document.getElementById('goalsList');
+      goalsList.innerHTML = GOALS.map(g => `
+    <div class="goal-row">
+      <div class="goal-name">${g.name}</div>
+      <input class="goal-input mono" data-id="${g.id}" value="${g.target || ''}" placeholder="target">
+    </div>`).join('');
+      goalsList.querySelectorAll('.goal-input').forEach(inp => {
+        inp.addEventListener('change', async (e) => {
+          const id = e.target.dataset.id;
+          const g = GOALS.find(x => x.id === id);
+          if (g) { g.target = e.target.value; await saveGoals(); }
+        });
+      });
+
+      const summary = document.getElementById('weekLogSummary');
+      let rows = '';
+      for (let w = 1; w <= TOTAL_WEEKS; w++) {
+        const wl = LOG[w];
+        const youDone = wl ? wl.you.filter(Boolean).length : 0;
+        const partnerDone = wl ? wl.partner.filter(Boolean).length : 0;
+        rows += `<div class="goal-row">
+      <div class="goal-name">Week ${w} <span style="color:var(--steel);font-weight:400;">(${getWeekRange(w)})</span></div>
+      <div class="mono" style="font-size:12px;color:var(--ink-soft);">${PROFILE.you.slice(0, 3)} ${youDone}/7 · ${PROFILE.partner.slice(0, 3)} ${partnerDone}/7</div>
+    </div>`;
+      }
+      summary.innerHTML = rows;
+    }
+
+    /* ============ TABS ============ */
+    document.querySelectorAll('.tabbtn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tabbtn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+        if (btn.dataset.tab === 'goals') renderGoalsPanel();
+      });
+    });
+
+    /* ============ NAME EDIT ============ */
+    document.getElementById('editNamesBtn').addEventListener('click', toggleNameEdit);
+    document.getElementById('saveNamesBtn').addEventListener('click', async () => {
+      const y = document.getElementById('youNameInput').value.trim();
+      const p = document.getElementById('partnerNameInput').value.trim();
+      if (y) PROFILE.you = y;
+      if (p) PROFILE.partner = p;
+      await saveProfile();
+      document.getElementById('nameEditRow').style.display = 'none';
+      renderHero();
+      renderDashboard();
+      renderProgram();
+    });
+
+    /* ============ INIT ============ */
+    (async function init() {
+      await loadAll();
+      renderHero();
+      renderDashboard();
+      renderProgram();
+      renderStations();
+    })();
+  </script>
+</body>
+
+</html>
