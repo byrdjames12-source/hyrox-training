@@ -59,7 +59,7 @@
     .hero {
       background: var(--asphalt);
       color: var(--chalk);
-      padding: 28px 20px 22px;
+      padding:22px 18px 18px;
       position: relative;
       overflow: hidden;
       border-bottom: 4px solid var(--hazard);
@@ -663,10 +663,24 @@
       color: var(--hazard);
     }
 
-    @media (max-width:480px) {
-      .countdown-num {
-        font-size: 44px;
-      }
+    @media (max-width:600px){
+  .hero{padding:18px 16px 16px;}
+  .hero-top{flex-direction:column; align-items:flex-start; gap:0;}
+  .hero-title{font-size:21px;}
+  .hero-names{font-size:12px;}
+  .countdown-box{
+    width:100%;
+    display:flex; flex-direction:row; align-items:baseline; gap:10px;
+    text-align:left;
+    margin-top:14px; padding-top:12px;
+    border-top:1px solid rgba(255,255,255,0.14);
+  }
+  .countdown-num{font-size:34px; line-height:0.9;}
+  .countdown-meta{display:flex; flex-direction:column;}
+  .countdown-label{margin-top:0;}
+  .race-date{margin-top:1px;}
+  .phase-track{margin-top:14px;}
+}
 
       .hero-title {
         font-size: 22px;
@@ -692,10 +706,12 @@
         </div>
       </div>
       <div class="countdown-box">
-        <div class="countdown-num" id="countdownNum">–</div>
-        <div class="countdown-label">days to race</div>
-        <div class="race-date">Thu, Dec 3, 2026</div>
-      </div>
+  <div class="countdown-num" id="countdownNum">–</div>
+  <div class="countdown-meta">
+    <div class="countdown-label">days to race</div>
+    <div class="race-date">Thu, Dec 3, 2026</div>
+  </div>
+</div>
     </div>
 
     <div class="phase-track">
